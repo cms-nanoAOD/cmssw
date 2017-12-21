@@ -35,3 +35,29 @@ genTable  = cms.EDProducer("SimpleGenEventFlatTableProducer",
 
 globalTables = cms.Sequence(rhoTable)
 globalTablesMC = cms.Sequence(puTable+genTable)
+
+rivetProducerHTXS = cms.EDProducer('HTXSRivetProducer',
+  HepMCCollection = cms.InputTag('myGenerator','unsmeared'),
+  LHERunInfo = cms.InputTag('externalLHEProducer'),
+  #ProductionMode = cms.string('GGF'),
+  ProductionMode = cms.string('AUTO'),
+)
+
+mergedGenParticles = cms.EDProducer("MergedGenParticleProducer",
+    inputPruned = cms.InputTag("prunedGenParticles"),
+    inputPacked = cms.InputTag("packedGenParticles"),
+)
+myGenerator = cms.EDProducer("GenParticles2HepMCConverter",
+    genParticles = cms.InputTag("mergedGenParticles"),
+    genEventInfo = cms.InputTag("generator"),
+    signalParticlePdgIds = cms.vint32(25), ## for the Higgs analysis
+)
+
+# process.p = cms.Path(process.mergedGenParticles*process.myGenerator*process.rivetProducerHTXS)
+# process.out = cms.OutputModule("PoolOutputModule",
+    # outputCommands = cms.untracked.vstring('drop *','keep *_*_*_runRivetAnalysis','keep *_generator_*_*','keep *_externalLHEProducer_*_*'),
+    # fileName = cms.untracked.string('testHTXSRivet_ggH4l_MINIAOD_100k.root')
+# )
+
+
+globalrivetProducerHTXS = cms.Sequence(mergedGenParticles*myGenerator*rivetProducerHTXS)
