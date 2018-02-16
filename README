@@ -1,1 +1,19 @@
 Introduction to CMSSW: http://cms-sw.github.io
+
+First version of custom-made NanoAOD production for the Coffee analysis framework. This has to be intendend as a CoffeeHarvester that produces coffeebeans, rootfiles in NanoAOD format in input to the CoffeeMaker analyzer. 
+
+The master branch is the most up-to-date version of the CoffeeHarvester. For previous versions, checkout the branch corresponding to the desired CMSSW version. Branches are labelled as CoffeeHarvester??X (i.e. CoffeeHarvester94X is the branch for coffeebeans production in CMSSW 94X)
+
+Current version is for CMSSW_9_4_X. To set it up follow these instructions:
+```
+cmsrel CMSSW_9_4_4
+cd CMSSW_9_4_4/src
+cmsenv
+
+git cms-merge-topic LPC-DM:master
+# create a branch directly on the nanoAOD branch, skipping the unnecessary merge commit from cms-merge-topic
+git checkout -b CoffeeHarvester94X LPC-DM/master
+
+# compile it
+scram build
+```
