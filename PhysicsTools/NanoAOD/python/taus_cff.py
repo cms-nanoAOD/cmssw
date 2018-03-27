@@ -3,13 +3,94 @@ from PhysicsTools.NanoAOD.common_cff import *
 from PhysicsTools.JetMCAlgos.TauGenJets_cfi import tauGenJets
 from PhysicsTools.JetMCAlgos.TauGenJetsDecayModeSelectorAllHadrons_cfi import tauGenJetsSelectorAllHadrons 
 
+##################### Updated tau collection with MVA-based tau-Ids rerun #######
+# Used only in some eras
+from RecoTauTag.Configuration.loadRecoTauTagMVAsFromPrepDB_cfi import *
+from RecoTauTag.RecoTau.PATTauDiscriminationByMVAIsolationRun2_cff import *
+
+### MVAIso DBoldDM
+# Raw
+patTauDiscriminationByIsolationMVArun2v1DBoldDMwLTraw = patDiscriminationByIsolationMVArun2v1raw.clone(
+   PATTauProducer = cms.InputTag('slimmedTaus'),
+   Prediscriminants = noPrediscriminants,
+   loadMVAfromDB = cms.bool(True),
+   mvaName = cms.string("RecoTauTag_tauIdMVAIsoDBoldDMwLT2017v1"), # name of the training you want to use
+   mvaOpt = cms.string("DBoldDMwLTwGJ"), # option you want to use for your training (i.e., which variables are used to compute the BDT score)
+   requireDecayMode = cms.bool(True),
+   verbosity = cms.int32(0)
+)
+# VVLoose WP
+patTauDiscriminationByVVLooseIsolationMVArun2v1DBoldDMwLT = patDiscriminationByIsolationMVArun2v1VLoose.clone(
+   PATTauProducer = cms.InputTag('slimmedTaus'),    
+   Prediscriminants = noPrediscriminants,
+   toMultiplex = cms.InputTag('patTauDiscriminationByIsolationMVArun2v1DBoldDMwLTraw'),
+   key = cms.InputTag('patTauDiscriminationByIsolationMVArun2v1DBoldDMwLTraw','category'),
+   loadMVAfromDB = cms.bool(True),
+   mvaOutput_normalization = cms.string("RecoTauTag_tauIdMVAIsoDBoldDMwLT2017v1_mvaOutput_normalization"), # normalization fo the training you want to use
+   mapping = cms.VPSet(
+      cms.PSet(
+         category = cms.uint32(0),
+         cut = cms.string("RecoTauTag_tauIdMVAIsoDBoldDMwLT2017v1_WPEff95"), # this is the name of the working point you want to use
+         variable = cms.string("pt"),
+      )
+   )
+)
+# VLoose WP
+patTauDiscriminationByVLooseIsolationMVArun2v1DBoldDMwLT = patTauDiscriminationByVVLooseIsolationMVArun2v1DBoldDMwLT.clone()
+patTauDiscriminationByVLooseIsolationMVArun2v1DBoldDMwLT.mapping[0].cut = cms.string("RecoTauTag_tauIdMVAIsoDBoldDMwLT2017v1_WPEff90")
+# Loose WP
+patTauDiscriminationByLooseIsolationMVArun2v1DBoldDMwLT = patTauDiscriminationByVVLooseIsolationMVArun2v1DBoldDMwLT.clone()
+patTauDiscriminationByLooseIsolationMVArun2v1DBoldDMwLT.mapping[0].cut = cms.string("RecoTauTag_tauIdMVAIsoDBoldDMwLT2017v1_WPEff80")
+# Medium WP
+patTauDiscriminationByMediumIsolationMVArun2v1DBoldDMwLT = patTauDiscriminationByVVLooseIsolationMVArun2v1DBoldDMwLT.clone()
+patTauDiscriminationByMediumIsolationMVArun2v1DBoldDMwLT.mapping[0].cut = cms.string("RecoTauTag_tauIdMVAIsoDBoldDMwLT2017v1_WPEff70")
+# Tight WP
+patTauDiscriminationByTightIsolationMVArun2v1DBoldDMwLT = patTauDiscriminationByVVLooseIsolationMVArun2v1DBoldDMwLT.clone()
+patTauDiscriminationByTightIsolationMVArun2v1DBoldDMwLT.mapping[0].cut = cms.string("RecoTauTag_tauIdMVAIsoDBoldDMwLT2017v1_WPEff60")
+# VTight WP
+patTauDiscriminationByVTightIsolationMVArun2v1DBoldDMwLT = patTauDiscriminationByVVLooseIsolationMVArun2v1DBoldDMwLT.clone()
+patTauDiscriminationByVTightIsolationMVArun2v1DBoldDMwLT.mapping[0].cut = cms.string("RecoTauTag_tauIdMVAIsoDBoldDMwLT2017v1_WPEff50")
+# VVTights WP
+patTauDiscriminationByVVTightIsolationMVArun2v1DBoldDMwLT = patTauDiscriminationByVVLooseIsolationMVArun2v1DBoldDMwLT.clone()
+patTauDiscriminationByVVTightIsolationMVArun2v1DBoldDMwLT.mapping[0].cut = cms.string("RecoTauTag_tauIdMVAIsoDBoldDMwLT2017v1_WPEff40")
+# MVAIso DBoldDM Seqeunce
+patTauDiscriminationByIsolationMVArun2v1DBoldDMwLTSeq = cms.Sequence(
+    patTauDiscriminationByIsolationMVArun2v1DBoldDMwLTraw
+    + patTauDiscriminationByVVLooseIsolationMVArun2v1DBoldDMwLT
+    + patTauDiscriminationByVLooseIsolationMVArun2v1DBoldDMwLT
+    + patTauDiscriminationByLooseIsolationMVArun2v1DBoldDMwLT
+    + patTauDiscriminationByMediumIsolationMVArun2v1DBoldDMwLT
+    + patTauDiscriminationByTightIsolationMVArun2v1DBoldDMwLT
+    + patTauDiscriminationByVTightIsolationMVArun2v1DBoldDMwLT
+    + patTauDiscriminationByVVTightIsolationMVArun2v1DBoldDMwLT
+)
+### FIXME: add other tau-Ids when ready
+
+### put all new MVA tau-Id stuff to one Sequence
+patTauMVAIDsSeq = cms.Sequence(
+    patTauDiscriminationByIsolationMVArun2v1DBoldDMwLTSeq
+)
+# embed new MVA tau-Ids into new tau collection
+slimmedTausUpdated = cms.EDProducer("PATTauIDEmbedder",
+    src = cms.InputTag('slimmedTaus'),
+    tauIDSources = cms.PSet(
+        byIsolationMVArun2v1DBoldDMwLTraw2017v1 = cms.InputTag('patTauDiscriminationByIsolationMVArun2v1DBoldDMwLTraw'),
+        byVVLooseIsolationMVArun2v1DBoldDMwLT2017v1 = cms.InputTag('patTauDiscriminationByVVLooseIsolationMVArun2v1DBoldDMwLT'),
+        byVLooseIsolationMVArun2v1DBoldDMwLT2017v1 = cms.InputTag('patTauDiscriminationByVLooseIsolationMVArun2v1DBoldDMwLT'),
+        byLooseIsolationMVArun2v1DBoldDMwLT2017v1 = cms.InputTag('patTauDiscriminationByLooseIsolationMVArun2v1DBoldDMwLT'),
+        byMediumIsolationMVArun2v1DBoldDMwLT2017v1 = cms.InputTag('patTauDiscriminationByMediumIsolationMVArun2v1DBoldDMwLT'),
+        byTightIsolationMVArun2v1DBoldDMwLT2017v1 = cms.InputTag('patTauDiscriminationByTightIsolationMVArun2v1DBoldDMwLT'),
+        byVTightIsolationMVArun2v1DBoldDMwLT2017v1 = cms.InputTag('patTauDiscriminationByVTightIsolationMVArun2v1DBoldDMwLT'),
+        byVVTightIsolationMVArun2v1DBoldDMwLT2017v1 = cms.InputTag('patTauDiscriminationByVVTightIsolationMVArun2v1DBoldDMwLT'),
+    )
+)
+patTauMVAIDsSeq += slimmedTausUpdated
 
 ##################### User floats producers, selectors ##########################
 
-
 finalTaus = cms.EDFilter("PATTauRefSelector",
-    src = cms.InputTag("slimmedTaus"),
-    cut = cms.string("pt > 18 && tauID('decayModeFindingNewDMs') && (tauID('byLooseCombinedIsolationDeltaBetaCorr3Hits') || tauID('byVLooseIsolationMVArun2v1DBoldDMwLT') || tauID('byVLooseIsolationMVArun2v1DBnewDMwLT') || tauID('byVLooseIsolationMVArun2v1DBdR03oldDMwLT'))")
+    src = cms.InputTag("slimmedTausUpdated"),
+    cut = cms.string("pt > 18 && tauID('decayModeFindingNewDMs') && (tauID('byLooseCombinedIsolationDeltaBetaCorr3Hits') || tauID('byVLooseIsolationMVArun2v1DBoldDMwLT') || tauID('byVLooseIsolationMVArun2v1DBnewDMwLT') || tauID('byVLooseIsolationMVArun2v1DBdR03oldDMwLT') || tauID('byVVLooseIsolationMVArun2v1DBoldDMwLT2017v1'))")
 )
 
 ##################### Tables for final output and docs ##########################
@@ -22,6 +103,8 @@ def _tauId5WPMask(pattern,doc):
     return _tauIdWPMask(pattern,choices=("VLoose","Loose","Medium","Tight","VTight"),doc=doc)
 def _tauId6WPMask(pattern,doc):
     return _tauIdWPMask(pattern,choices=("VLoose","Loose","Medium","Tight","VTight","VVTight"),doc=doc)
+def _tauId7WPMask(pattern,doc):
+    return _tauIdWPMask(pattern,choices=("VVLoose","VLoose","Loose","Medium","Tight","VTight","VVTight"),doc=doc)
 
 
 tauTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
@@ -55,6 +138,7 @@ tauTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
                          
        rawMVAnewDM = Var( "tauID('byIsolationMVArun2v1DBnewDMwLTraw')",float, doc="byIsolationMVArun2v1DBnewDMwLT raw output discriminator",precision=10),
        rawMVAoldDM = Var( "tauID('byIsolationMVArun2v1DBoldDMwLTraw')",float, doc="byIsolationMVArun2v1DBoldDMwLT raw output discriminator",precision=10),
+       rawMVAoldDM2017v1 = Var( "tauID('byIsolationMVArun2v1DBoldDMwLTraw2017v1')",float, doc="byIsolationMVArun2v1DBoldDMwLT raw output discriminator (2017v1)",precision=10),#FIXME: probably RAW of the old trainig should be removed
        rawMVAoldDMdR03 = Var( "tauID('byIsolationMVArun2v1DBdR03oldDMwLTraw')",float, doc="byIsolationMVArun2v1DBdR03oldDMwLT raw output discriminator",precision=10),
        rawAntiEle = Var("tauID('againstElectronMVA6Raw')", float, doc= "Anti-electron MVA discriminator V6 raw output discriminator", precision=10),
        rawAntiEleCat = Var("tauID('againstElectronMVA6category')", int, doc="Anti-electron MVA discriminator V6 category"),
@@ -63,6 +147,7 @@ tauTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
        idAntiEle = _tauId5WPMask("againstElectron%sMVA6", doc= "Anti-electron MVA discriminator V6"),                         
        idMVAnewDM = _tauId6WPMask( "by%sIsolationMVArun2v1DBnewDMwLT", doc="IsolationMVArun2v1DBnewDMwLT ID working point"),
        idMVAoldDM = _tauId6WPMask( "by%sIsolationMVArun2v1DBoldDMwLT", doc="IsolationMVArun2v1DBoldDMwLT ID working point"),
+       idMVAoldDM2017v1 = _tauId7WPMask( "by%sIsolationMVArun2v1DBoldDMwLT2017v1", doc="IsolationMVArun2v1DBoldDMwLT ID working point (2017v1)"),
        idMVAoldDMdR03 = _tauId6WPMask( "by%sIsolationMVArun2v1DBdR03oldDMwLT", doc="IsolationMVArun2v1DBdR03oldDMwLT ID working point"),
     
 
@@ -134,7 +219,7 @@ tauMCTable = cms.EDProducer("CandMCMatchTableProducer",
 )
 
 
-tauSequence = cms.Sequence(finalTaus)
+tauSequence = cms.Sequence(patTauMVAIDsSeq + finalTaus)
 tauTables = cms.Sequence(tauTable)
 tauMC = cms.Sequence(tauGenJets + tauGenJetsSelectorAllHadrons + genVisTaus + genVisTauTable + tausMCMatchLepTauForTable + tausMCMatchHadTauForTable + tauMCTable)
 
