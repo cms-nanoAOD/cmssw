@@ -24,6 +24,8 @@ def _tauIdWPMask(pattern, choices, doc=""):
                doc=doc+": bitmask "+", ".join(["%d = %s" % (pow(2,i),c) for (i,c) in enumerate(choices)]))
 def _tauId2WPMask(pattern,doc):
     return _tauIdWPMask(pattern,choices=("Loose","Tight"),doc=doc)
+def _tauId3WPMask(pattern,doc):
+    return _tauIdWPMask(pattern,choices=("Loose","Medium","Tight"),doc=doc)
 def _tauId5WPMask(pattern,doc):
     return _tauIdWPMask(pattern,choices=("VLoose","Loose","Medium","Tight","VTight"),doc=doc)
 def _tauId6WPMask(pattern,doc):
@@ -72,6 +74,13 @@ tauTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
        
        idAntiMu = _tauId2WPMask("againstMuon%s3", doc= "Anti-muon discriminator V3: "),
        idAntiEle = _tauId5WPMask("againstElectron%sMVA6", doc= "Anti-electron MVA discriminator V6"),
+       idCombIso = _tauId3WPMask("by%sCombinedIsolationDeltaBetaCorr3Hits", doc= "Combined isolation (deltaBeta corrections) ID working point"),
+       idCombIsodR03 =  Var(
+            "(? (tauID('chargedIsoPtSumdR03')+max(0.,tauID('neutralIsoPtSumdR03')-0.072*tauID('puCorrPtSum')))<2.5 && tauID('photonPtSumOutsideSignalConedR03')<0.1*pt ? 1 : 0) +"
+            "(? (tauID('chargedIsoPtSumdR03')+max(0.,tauID('neutralIsoPtSumdR03')-0.072*tauID('puCorrPtSum')))<1.5 && tauID('photonPtSumOutsideSignalConedR03')<0.1*pt ? 2 : 0) +"
+            "(? (tauID('chargedIsoPtSumdR03')+max(0.,tauID('neutralIsoPtSumdR03')-0.072*tauID('puCorrPtSum')))<0.8 && tauID('photonPtSumOutsideSignalConedR03')<0.1*pt ? 4 : 0)"
+            , "uint8", doc="Combined isolation (deltaBeta corrections, dR=0.3) ID working point: bitmask 1 = Loose, 2 = Medium, 4 = Tight"
+       ),
        idMVAnewDM = _tauId6WPMask( "by%sIsolationMVArun2v1DBnewDMwLT", doc="IsolationMVArun2v1DBnewDMwLT ID working point"),
        idMVAnewDM2017v2 = _tauId7WPMask( "by%sIsolationMVArun2v1DBnewDMwLT2017v2", doc="IsolationMVArun2v1DBnewDMwLT ID working point (2017v2)"),
        idMVAoldDM = _tauId6WPMask( "by%sIsolationMVArun2v1DBoldDMwLT2015", doc="IsolationMVArun2v1DBoldDMwLT ID working point (2015)"),
