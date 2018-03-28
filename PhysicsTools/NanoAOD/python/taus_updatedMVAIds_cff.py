@@ -302,7 +302,8 @@ patTauMVAIDsSeq = cms.Sequence(
 )
 _patTauMVAIDsSeqWith2017v1 = patTauMVAIDsSeq.copy()
 _patTauMVAIDsSeqWith2017v1 += patTauDiscriminationByIsolationMVArun2v1DBoldDMwLT2017v1Seq
-eras.run2_nanoAOD_94XMiniAODv1.toReplaceWith(patTauMVAIDsSeq,_patTauMVAIDsSeqWith2017v1)
+for era in [eras.run2_nanoAOD_94XMiniAODv1,eras.run2_nanoAOD_92X]:
+    era.toReplaceWith(patTauMVAIDsSeq,_patTauMVAIDsSeqWith2017v1)
 _patTauMVAIDsSeqWith2015 = patTauMVAIDsSeq.copy()
 _patTauMVAIDsSeqWith2015 += patTauDiscriminationByIsolationMVArun2v1DBoldDMwLT2015Seq
 eras.run2_nanoAOD_94XMiniAODv2.toReplaceWith(patTauMVAIDsSeq,_patTauMVAIDsSeqWith2015)
@@ -354,9 +355,10 @@ _tauIDSourcesWith2017v1 = cms.PSet(
     slimmedTausUpdated.tauIDSources,
     _tauIDSources2017v1
 )
-eras.run2_nanoAOD_94XMiniAODv1.toModify(slimmedTausUpdated,
-          tauIDSources = _tauIDSourcesWith2017v1
-)
+for era in [eras.run2_nanoAOD_94XMiniAODv1,eras.run2_nanoAOD_92X]:
+    era.toModify(slimmedTausUpdated,
+                 tauIDSources = _tauIDSourcesWith2017v1
+    )
 _tauIDSources2015 = cms.PSet(
     byIsolationMVArun2v1DBoldDMwLTraw2015 = cms.InputTag('patTauDiscriminationByIsolationMVArun2v1DBoldDMwLTraw2015'),
     byVLooseIsolationMVArun2v1DBoldDMwLT2015 = cms.InputTag('patTauDiscriminationByVLooseIsolationMVArun2v1DBoldDMwLT2015'),
