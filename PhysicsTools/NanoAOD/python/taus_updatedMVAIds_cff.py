@@ -359,10 +359,6 @@ _tauIDSourcesWith2017v1 = cms.PSet(
     slimmedTausUpdated.tauIDSources,
     _tauIDSources2017v1
 )
-for era in [eras.run2_nanoAOD_94XMiniAODv1,eras.run2_nanoAOD_92X]:
-    era.toModify(slimmedTausUpdated,
-                 tauIDSources = _tauIDSourcesWith2017v1
-    )
 _tauIDSources2015 = cms.PSet(
     byIsolationMVArun2v1DBoldDMwLTraw2015 = cms.InputTag('patTauDiscriminationByIsolationMVArun2v1DBoldDMwLTraw2015'),
     byVLooseIsolationMVArun2v1DBoldDMwLT2015 = cms.InputTag('patTauDiscriminationByVLooseIsolationMVArun2v1DBoldDMwLT2015'),
@@ -376,13 +372,17 @@ _tauIDSourcesWith2015 = cms.PSet(
     slimmedTausUpdated.tauIDSources,
     _tauIDSources2015
 )
-eras.run2_nanoAOD_94XMiniAODv2.toModify(slimmedTausUpdated,
-          tauIDSources = _tauIDSourcesWith2015
-)
-tauIDSourcesWith2015And2017v1 = cms.PSet(
+_tauIDSourcesWith2015And2017v1 = cms.PSet(
     slimmedTausUpdated.tauIDSources,
     _tauIDSources2015,
     _tauIDSources2017v1
+)
+for era in [eras.run2_nanoAOD_94XMiniAODv1,eras.run2_nanoAOD_92X]:
+    era.toModify(slimmedTausUpdated,
+                 tauIDSources = _tauIDSourcesWith2017v1
+    )
+eras.run2_nanoAOD_94XMiniAODv2.toModify(slimmedTausUpdated,
+          tauIDSources = _tauIDSourcesWith2015
 )
 eras.run2_miniAOD_80XLegacy.toModify(slimmedTausUpdated,
           tauIDSources = _tauIDSourcesWith2015And2017v1
