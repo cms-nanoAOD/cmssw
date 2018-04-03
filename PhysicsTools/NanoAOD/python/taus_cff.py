@@ -64,7 +64,6 @@ tauTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
        chargedIso = Var( "tauID('chargedIsoPtSum')", float, doc = "charged isolation", precision=10),
        neutralIso = Var( "tauID('neutralIsoPtSum')", float, doc = "neutral (photon) isolation", precision=10),
        puCorr = Var( "tauID('puCorrPtSum')", float, doc = "pileup correction", precision=10),
-       #footprintCorr = Var( "tauID('footprintCorrection')", float, doc = "footprint correction", precision=10),
        photonsOutsideSignalCone = Var( "tauID('photonPtSumOutsideSignalCone')", float, doc = "sum of photons outside signal cone", precision=10),
                          
        rawMVAnewDM2017v2 = Var( "tauID('byIsolationMVArun2v1DBnewDMwLTraw2017v2')",float, doc="byIsolationMVArun2v1DBnewDMwLT raw output discriminator (2017v2)",precision=10),
