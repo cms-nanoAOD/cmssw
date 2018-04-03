@@ -307,10 +307,6 @@ for era in [eras.run2_nanoAOD_94XMiniAODv1,eras.run2_nanoAOD_92X]:
 _patTauMVAIDsSeqWith2015 = patTauMVAIDsSeq.copy()
 _patTauMVAIDsSeqWith2015 += patTauDiscriminationByIsolationMVArun2v1DBoldDMwLT2015Seq
 eras.run2_nanoAOD_94XMiniAODv2.toReplaceWith(patTauMVAIDsSeq,_patTauMVAIDsSeqWith2015)
-_patTauMVAIDsSeqWith2015And2017v1 = patTauMVAIDsSeq.copy()
-_patTauMVAIDsSeqWith2015And2017v1 += patTauDiscriminationByIsolationMVArun2v1DBoldDMwLT2015Seq
-_patTauMVAIDsSeqWith2015And2017v1 += patTauDiscriminationByIsolationMVArun2v1DBoldDMwLT2017v1Seq
-eras.run2_miniAOD_80XLegacy.toReplaceWith(patTauMVAIDsSeq,_patTauMVAIDsSeqWith2015And2017v1)
 
 # embed new MVA tau-Ids into new tau collection
 slimmedTausUpdated = cms.EDProducer("PATTauIDEmbedder",
@@ -356,7 +352,7 @@ _tauIDSources2017v1 = cms.PSet(
     byVVTightIsolationMVArun2v1DBoldDMwLT2017v1 = cms.InputTag('patTauDiscriminationByVVTightIsolationMVArun2v1DBoldDMwLT2017v1')
 )
 _tauIDSourcesWith2017v1 = cms.PSet(
-    slimmedTausUpdated.tauIDSources,
+    slimmedTausUpdated.tauIDSources.clone(),
     _tauIDSources2017v1
 )
 _tauIDSources2015 = cms.PSet(
@@ -369,23 +365,16 @@ _tauIDSources2015 = cms.PSet(
     byVVTightIsolationMVArun2v1DBoldDMwLT2015 = cms.InputTag('patTauDiscriminationByVVTightIsolationMVArun2v1DBoldDMwLT2015')
 )
 _tauIDSourcesWith2015 = cms.PSet(
-    slimmedTausUpdated.tauIDSources,
+    slimmedTausUpdated.tauIDSources.clone(),
     _tauIDSources2015
 )
-_tauIDSourcesWith2015And2017v1 = cms.PSet(
-    slimmedTausUpdated.tauIDSources,
-    _tauIDSources2015,
-    _tauIDSources2017v1
-)
+
 for era in [eras.run2_nanoAOD_94XMiniAODv1,eras.run2_nanoAOD_92X]:
     era.toModify(slimmedTausUpdated,
                  tauIDSources = _tauIDSourcesWith2017v1
     )
 eras.run2_nanoAOD_94XMiniAODv2.toModify(slimmedTausUpdated,
           tauIDSources = _tauIDSourcesWith2015
-)
-eras.run2_miniAOD_80XLegacy.toModify(slimmedTausUpdated,
-          tauIDSources = _tauIDSourcesWith2015And2017v1
 )
 
 patTauMVAIDsSeq += slimmedTausUpdated
