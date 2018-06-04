@@ -15,6 +15,7 @@ from PhysicsTools.NanoAOD.met_cff import *
 from PhysicsTools.NanoAOD.triggerObjects_cff import *
 from PhysicsTools.NanoAOD.isotracks_cff import *
 from PhysicsTools.NanoAOD.NanoAODEDMEventContent_cff import *
+from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
 
 from Configuration.Eras.Modifier_run2_miniAOD_80XLegacy_cff import run2_miniAOD_80XLegacy
 from Configuration.Eras.Modifier_run2_nanoAOD_92X_cff import run2_nanoAOD_92X
@@ -159,6 +160,7 @@ def nanoAOD_customizeCommon(process):
 
 def nanoAOD_customizeData(process):
     process = nanoAOD_customizeCommon(process)
+    runMetCorAndUncFromMiniAOD(process, isData = True)
     if hasattr(process,'calibratedPatElectrons80X'):
         process.calibratedPatElectrons80X.isMC = cms.bool(False)
         process.calibratedPatPhotons80X.isMC = cms.bool(False)
@@ -166,6 +168,7 @@ def nanoAOD_customizeData(process):
 
 def nanoAOD_customizeMC(process):
     process = nanoAOD_customizeCommon(process)
+    runMetCorAndUncFromMiniAOD(process, isData = False)
     if hasattr(process,'calibratedPatElectrons80X'):
         process.calibratedPatElectrons80X.isMC = cms.bool(True)
         process.calibratedPatPhotons80X.isMC = cms.bool(True)
