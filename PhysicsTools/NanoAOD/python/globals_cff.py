@@ -43,21 +43,27 @@ rivetProducerHTXS = cms.EDProducer('HTXSRivetProducer',
   ProductionMode = cms.string('AUTO'),
 )
 
-mergedGenParticles = cms.EDProducer("MergedGenParticleProducer",
+myMergedGenParticles = cms.EDProducer("MergedGenParticleProducer",
     inputPruned = cms.InputTag("prunedGenParticles"),
     inputPacked = cms.InputTag("packedGenParticles"),
 )
 myGenerator = cms.EDProducer("GenParticles2HepMCConverter",
-    genParticles = cms.InputTag("mergedGenParticles"),
+    genParticles = cms.InputTag("myMergedGenParticles"),
     genEventInfo = cms.InputTag("generator"),
     signalParticlePdgIds = cms.vint32(25), ## for the Higgs analysis
 )
 
-# process.p = cms.Path(process.mergedGenParticles*process.myGenerator*process.rivetProducerHTXS)
-# process.out = cms.OutputModule("PoolOutputModule",
-    # outputCommands = cms.untracked.vstring('drop *','keep *_*_*_runRivetAnalysis','keep *_generator_*_*','keep *_externalLHEProducer_*_*'),
-    # fileName = cms.untracked.string('testHTXSRivet_ggH4l_MINIAOD_100k.root')
-# )
+HTXSCategoryTable = cms.EDProducer("SimpleHTXSFlatTableProducer",
+   src = cms.InputTag("rivetProducerHTXS","HiggsClassification"),
+   cut = cms.string(""),
+   name = cms.string("STXS"),
+   doc = cms.string("STXS classification"),
+   singleton = cms.bool(True),
+   extension = cms.bool(False),
+   variables=cms.PSet(
+       stage_0 = Var("stage0_cat","int", doc="STXS stage-0 category"),
+       stage_1 = Var("stage1_cat_pTjet30GeV","int", doc="STXS stage-1 category (jet pT>30 GeV)")
+   )
+)
 
-
-globalrivetProducerHTXS = cms.Sequence(mergedGenParticles*myGenerator*rivetProducerHTXS)
+globalrivetProducerHTXS = cms.Sequence(myMergedGenParticles*myGenerator*rivetProducerHTXS*HTXSCategoryTable)
