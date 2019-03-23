@@ -123,19 +123,16 @@ LeptonInJetProducer<T>::produce(edm::StreamID streamID, edm::Event& iEvent, cons
       if(itJet.pt() <= 10) continue;
       std::vector<fastjet::PseudoJet> lClusterParticles;
       float lepPt(-1),lepEta(-1),lepPhi(-1);
-      //double dRconst(999);
       int lepId(0);
-      for (unsigned int i0 = 0; i0 < itJet.numberOfSourceCandidatePtrs(); i0++) {
-        const pat::PackedCandidate &itPF = dynamic_cast<const pat::PackedCandidate &>(*itJet.sourceCandidatePtr(i0));
-	fastjet::PseudoJet pPart(itPF.px(),itPF.py(),itPF.pz(),itPF.energy());
-        lClusterParticles.emplace_back(pPart);
-	if(fabs(itPF.pdgId()) != 11 && fabs(itPF.pdgId()) != 13) continue;
-	if(itPF.pt() > lepPt) { 
-	  lepPt = itPF.pt();
-	  lepEta = itPF.eta();
-	  lepPhi = itPF.phi();
-	  lepId = fabs(itPF.pdgId());
-	  //dRconst= reco::deltaR(itJet.eta(), itJet.phi(),itPF.eta(),itPF.phi());
+      for (auto const d : itJet.daughterPtrVector() ) {
+	fastjet::PseudoJet p( d->px(), d->py(), d->pz(), d->energy() );
+        lClusterParticles.emplace_back(p);
+	if(fabs(d->pdgId()) != 11 && fabs(d->pdgId()) != 13) continue;
+	if(d->pt() > lepPt) { 
+	  lepPt = d->pt();
+	  lepEta = d->eta();
+	  lepPhi = d->phi();
+	  lepId = fabs(d->pdgId());
 	}
       }
 
@@ -152,7 +149,6 @@ LeptonInJetProducer<T>::produce(edm::StreamID streamID, edm::Event& iEvent, cons
       double dRmin(0.8),dRele(999),dRmu(999);
       if(ele_pfmatch!=nullptr) dRele = reco::deltaR(itJet.eta(), itJet.phi(), ele_pfmatch->eta(), ele_pfmatch->phi());
       if(mu_pfmatch!=nullptr) dRmu = reco::deltaR(itJet.eta(), itJet.phi(), mu_pfmatch->eta(), mu_pfmatch->phi());
-      //std::cout << "dRele " << dRele << " dRmu " << dRmu << " lepid " << lepId << " dR const " << dRconst << std::endl;
       lepPt=-1; lepEta=-1; lepPhi=-1;
       lepId=0;
       if(dRele < dRmin) {
