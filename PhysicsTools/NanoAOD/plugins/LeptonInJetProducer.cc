@@ -35,7 +35,6 @@ public:
     srcMu_(consumes<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("srcMu")))
   {
     produces<edm::ValueMap<float>>("lsf3");
-    produces<edm::ValueMap<float>>("lmd3");
     produces<edm::ValueMap<float>>("lep3pt");
     produces<edm::ValueMap<float>>("lep3eta");
     produces<edm::ValueMap<float>>("lep3phi");
@@ -82,7 +81,6 @@ LeptonInJetProducer<T>::produce(edm::StreamID streamID, edm::Event& iEvent, cons
     unsigned int nMu  = srcMu->size();
 
     std::vector<float> *vlsf3 = new std::vector<float>;
-    std::vector<float> *vlmd3 = new std::vector<float>;
     std::vector<float> *vlep3pt = new std::vector<float>;
     std::vector<float> *vlep3eta = new std::vector<float>;
     std::vector<float> *vlep3phi = new std::vector<float>;
@@ -140,7 +138,6 @@ LeptonInJetProducer<T>::produce(edm::StreamID streamID, edm::Event& iEvent, cons
       std::vector<fastjet::PseudoJet> psub_3; 
       auto lsf_3 = calculateLSF(lClusterParticles, psub_3, lepPt, lepEta, lepPhi, lepId, 2.0, 3);
       vlsf3->push_back( std::get<0>(lsf_3));
-      vlmd3->push_back( std::get<1>(lsf_3));
       vlep3pt->push_back(lepPt);
       vlep3eta->push_back(lepEta);
       vlep3phi->push_back(lepPhi);
@@ -176,12 +173,6 @@ LeptonInJetProducer<T>::produce(edm::StreamID streamID, edm::Event& iEvent, cons
     fillerlsf3.insert(srcJet,vlsf3->begin(),vlsf3->end());
     fillerlsf3.fill();
     iEvent.put(std::move(lsf3V),"lsf3");
-
-    std::unique_ptr<edm::ValueMap<float>> lmd3V(new edm::ValueMap<float>());
-    edm::ValueMap<float>::Filler fillerlmd3(*lmd3V);
-    fillerlmd3.insert(srcJet,vlmd3->begin(),vlmd3->end());
-    fillerlmd3.fill();
-    iEvent.put(std::move(lmd3V),"lmd3");
 
     std::unique_ptr<edm::ValueMap<float>> lep3ptV(new edm::ValueMap<float>());
     edm::ValueMap<float>::Filler fillerlep3pt(*lep3ptV);
