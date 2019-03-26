@@ -35,12 +35,9 @@ public:
     srcMu_(consumes<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("srcMu")))
   {
     produces<edm::ValueMap<float>>("lsf3");
-    produces<edm::ValueMap<float>>("lep3pt");
-    produces<edm::ValueMap<float>>("lep3eta");
-    produces<edm::ValueMap<float>>("lep3phi");
-    produces<edm::ValueMap<int>>("lep3id");
     produces<edm::ValueMap<float>>("lsf3match");
     produces<edm::ValueMap<int>>("lep3idmatch");
+    produces<edm::ValueMap<int>>("lep3indexmatch");
   }
   ~LeptonInJetProducer() override {};
   
@@ -81,39 +78,35 @@ LeptonInJetProducer<T>::produce(edm::StreamID streamID, edm::Event& iEvent, cons
     unsigned int nMu  = srcMu->size();
 
     std::vector<float> *vlsf3 = new std::vector<float>;
-    std::vector<float> *vlep3pt = new std::vector<float>;
-    std::vector<float> *vlep3eta = new std::vector<float>;
-    std::vector<float> *vlep3phi = new std::vector<float>;
-    std::vector<int> *vlep3id = new std::vector<int>;
-
     std::vector<float> *vlsf3match = new std::vector<float>;
     std::vector<int> *vlep3idmatch = new std::vector<int>;
+    std::vector<int> *vlep3indexmatch = new std::vector<int>;
 
     // Matching electron and pfcands  
-    const pat::PackedCandidate *ele_pfmatch = nullptr;
-    double pfDR = 0.05;
+    const pat::PackedCandidate *ele_pfmatch = nullptr; int ele_pfmatch_index = -1;
     for (unsigned int il(0); il < nEle; il++) {
       auto itLep = srcEle->ptrAt(il);
       for (const pat::PackedCandidate &itPF : *srcPF) {
-	double dR = reco::deltaR(itLep->eta(), itLep->phi(), itPF.eta(), itPF.phi());
-	if(dR < pfDR) {
-	  pfDR = dR;
-          ele_pfmatch = &itPF;
+	for(unsigned int i1 = 0 ; i1 < itLep->numberOfSourceCandidatePtrs();i1++){
+	  auto  c1s= itLep->sourceCandidatePtr(i1);
+	  for(unsigned int i2 = 0 ; i2 < itPF.numberOfSourceCandidatePtrs();i2++) {
+	    if(itPF.sourceCandidatePtr(i2)==c1s) { ele_pfmatch = &itPF; ele_pfmatch_index = i1; }
+	  }
 	}
-      }
-    } // Loop over pfcands
-    const pat::PackedCandidate *mu_pfmatch = nullptr;
-    pfDR = 0.05;
+      } 
+    } 
+    const pat::PackedCandidate *mu_pfmatch = nullptr; int mu_pfmatch_index = -1;
     for (unsigned int il(0); il < nMu; il++) {
       auto itLep = srcMu->ptrAt(il);
       for (const pat::PackedCandidate &itPF : *srcPF) {
-        double dR = reco::deltaR(itLep->eta(), itLep->phi(), itPF.eta(), itPF.phi());
-        if(dR < pfDR) {
-          pfDR = dR;
-          mu_pfmatch = &itPF;
-        }
-      }
-    } // Loop over pfcands
+	for(unsigned int i1 = 0 ; i1 < itLep->numberOfSourceCandidatePtrs();i1++){
+          auto  c1s= itLep->sourceCandidatePtr(i1);
+          for(unsigned int i2 = 0 ; i2 < itPF.numberOfSourceCandidatePtrs();i2++) {
+	    if(itPF.sourceCandidatePtr(i2)==c1s) { mu_pfmatch = &itPF; mu_pfmatch_index = i1; }
+	  }
+	}
+      } 
+    } 
 
     // Find leptons in jets
     for (unsigned int ij = 0; ij<nJet; ij++){
@@ -121,7 +114,7 @@ LeptonInJetProducer<T>::produce(edm::StreamID streamID, edm::Event& iEvent, cons
       if(itJet.pt() <= 10) continue;
       std::vector<fastjet::PseudoJet> lClusterParticles;
       float lepPt(-1),lepEta(-1),lepPhi(-1);
-      int lepId(0);
+      int lepId(-1),lepIndex(-1);
       for (auto const d : itJet.daughterPtrVector() ) {
 	fastjet::PseudoJet p( d->px(), d->py(), d->pz(), d->energy() );
         lClusterParticles.emplace_back(p);
@@ -138,32 +131,31 @@ LeptonInJetProducer<T>::produce(edm::StreamID streamID, edm::Event& iEvent, cons
       std::vector<fastjet::PseudoJet> psub_3; 
       auto lsf_3 = calculateLSF(lClusterParticles, psub_3, lepPt, lepEta, lepPhi, lepId, 2.0, 3);
       vlsf3->push_back( std::get<0>(lsf_3));
-      vlep3pt->push_back(lepPt);
-      vlep3eta->push_back(lepEta);
-      vlep3phi->push_back(lepPhi);
-      vlep3id->push_back(lepId);
 
       double dRmin(0.8),dRele(999),dRmu(999);
       if(ele_pfmatch!=nullptr) dRele = reco::deltaR(itJet.eta(), itJet.phi(), ele_pfmatch->eta(), ele_pfmatch->phi());
       if(mu_pfmatch!=nullptr) dRmu = reco::deltaR(itJet.eta(), itJet.phi(), mu_pfmatch->eta(), mu_pfmatch->phi());
       lepPt=-1; lepEta=-1; lepPhi=-1;
-      lepId=0;
+      lepId=-1; lepIndex=-1;
       if(dRele < dRmin) {
 	lepPt = ele_pfmatch->pt();
 	lepEta = ele_pfmatch->eta();
 	lepPhi = ele_pfmatch->phi();
 	lepId = 11;
+        lepIndex = ele_pfmatch_index;
       }
       if(dRmu < dRmin && dRmu < dRele) {
 	lepPt = mu_pfmatch->pt();
         lepEta = mu_pfmatch->eta();
         lepPhi = mu_pfmatch->phi();
         lepId = 13;
+	lepIndex = mu_pfmatch_index;
       } 
       std::vector<fastjet::PseudoJet> psub_3match;
       auto lsf_3match = calculateLSF(lClusterParticles, psub_3match, lepPt, lepEta, lepPhi, lepId, 2.0, 3);
       vlsf3match->push_back( std::get<0>(lsf_3match));
       vlep3idmatch->push_back( lepId );
+      vlep3indexmatch->push_back( lepIndex );
     }
 
 
@@ -174,30 +166,6 @@ LeptonInJetProducer<T>::produce(edm::StreamID streamID, edm::Event& iEvent, cons
     fillerlsf3.fill();
     iEvent.put(std::move(lsf3V),"lsf3");
 
-    std::unique_ptr<edm::ValueMap<float>> lep3ptV(new edm::ValueMap<float>());
-    edm::ValueMap<float>::Filler fillerlep3pt(*lep3ptV);
-    fillerlep3pt.insert(srcJet,vlep3pt->begin(),vlep3pt->end());
-    fillerlep3pt.fill();
-    iEvent.put(std::move(lep3ptV),"lep3pt");
-
-    std::unique_ptr<edm::ValueMap<float>> lep3etaV(new edm::ValueMap<float>());
-    edm::ValueMap<float>::Filler fillerlep3eta(*lep3etaV);
-    fillerlep3eta.insert(srcJet,vlep3eta->begin(),vlep3eta->end());
-    fillerlep3eta.fill();
-    iEvent.put(std::move(lep3etaV),"lep3eta");
-
-    std::unique_ptr<edm::ValueMap<float>> lep3phiV(new edm::ValueMap<float>());
-    edm::ValueMap<float>::Filler fillerlep3phi(*lep3phiV);
-    fillerlep3phi.insert(srcJet,vlep3phi->begin(),vlep3phi->end());
-    fillerlep3phi.fill();
-    iEvent.put(std::move(lep3phiV),"lep3phi");
-
-    std::unique_ptr<edm::ValueMap<int>> lep3idV(new edm::ValueMap<int>());
-    edm::ValueMap<int>::Filler fillerlep3id(*lep3idV);
-    fillerlep3id.insert(srcJet,vlep3id->begin(),vlep3id->end());
-    fillerlep3id.fill();
-    iEvent.put(std::move(lep3idV),"lep3id");
-      
     std::unique_ptr<edm::ValueMap<float>> lsf3matchV(new edm::ValueMap<float>());
     edm::ValueMap<float>::Filler fillerlsf3match(*lsf3matchV);
     fillerlsf3match.insert(srcJet,vlsf3match->begin(),vlsf3match->end());
@@ -209,6 +177,12 @@ LeptonInJetProducer<T>::produce(edm::StreamID streamID, edm::Event& iEvent, cons
     fillerlep3idmatch.insert(srcJet,vlep3idmatch->begin(),vlep3idmatch->end());
     fillerlep3idmatch.fill();
     iEvent.put(std::move(lep3idmatchV),"lep3idmatch");
+
+    std::unique_ptr<edm::ValueMap<int>> lep3indexmatchV(new edm::ValueMap<int>());
+    edm::ValueMap<int>::Filler fillerlep3indexmatch(*lep3indexmatchV);
+    fillerlep3indexmatch.insert(srcJet,vlep3indexmatch->begin(),vlep3indexmatch->end());
+    fillerlep3indexmatch.fill();
+    iEvent.put(std::move(lep3indexmatchV),"lep3indexmatch");
 
 }
 
