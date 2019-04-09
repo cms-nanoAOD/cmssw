@@ -301,3 +301,4 @@ _102x_sequence.insert(_102x_sequence.index(simpleCleanerTable)+1,extraFlagsTable
 
 for modifier in run2_nanoAOD_94XMiniAODv1, run2_nanoAOD_94XMiniAODv2, run2_nanoAOD_102Xv1:
     modifier.toReplaceWith(nanoSequenceCommon, _102x_sequence)
+
