@@ -33,6 +33,14 @@ ptRatioRelForMu = cms.EDProducer("MuonJetVarProducer",
 )
 run2_miniAOD_80XLegacy.toModify(ptRatioRelForMu, srcLep = "slimmedMuonsUpdated")
 
+FSRforMu = cms.EDProducer("MuonFSRProducer",
+    packedPFCandidates = cms.InputTag("packedPFCandidates"),
+    slimmedMuons = cms.InputTag("slimmedMuons"),
+    slimmedElectrons = cms.InputTag("slimmedElectrons"),
+)
+run2_miniAOD_80XLegacy.toModify(FSRforMu, src = "slimmedMuonsUpdated")
+run2_nanoAOD_94X2016.toModify(FSRforMu, src = "slimmedMuonsUpdated")
+
 slimmedMuonsWithUserData = cms.EDProducer("PATMuonUserDataEmbedder",
      src = cms.InputTag("slimmedMuons"),
      userFloats = cms.PSet(
@@ -41,6 +49,9 @@ slimmedMuonsWithUserData = cms.EDProducer("PATMuonUserDataEmbedder",
         ptRatio = cms.InputTag("ptRatioRelForMu:ptRatio"),
         ptRel = cms.InputTag("ptRatioRelForMu:ptRel"),
         jetNDauChargedMVASel = cms.InputTag("ptRatioRelForMu:jetNDauChargedMVASel"),
+        ptFSR = cms.InputTag("FSRforMu:ptFSR"), 
+        etaFSR = cms.InputTag("FSRforMu:etaFSR"), 
+        phiFSR = cms.InputTag("FSRforMu:phiFSR"), 
      ),
      userCands = cms.PSet(
         jetForLepJetVar = cms.InputTag("ptRatioRelForMu:jetForLepJetVar") # warning: Ptr is null if no match is found
@@ -115,6 +126,9 @@ muonTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
         tkRelIso = Var("isolationR03().sumPt/tunePMuonBestTrack().pt",float,doc="Tracker-based relative isolation dR=0.3 for highPt, trkIso/tunePpt",precision=6),
         miniPFRelIso_chg = Var("userFloat('miniIsoChg')/pt",float,doc="mini PF relative isolation, charged component"),
         miniPFRelIso_all = Var("userFloat('miniIsoAll')/pt",float,doc="mini PF relative isolation, total (with scaled rho*EA PU corrections)"),
+        pt_FSR = Var("userFloat('ptFSR')",float,doc="pt of the FSR photon associated to the muon"),                 
+        eta_FSR = Var("userFloat('etaFSR')",float,doc="eta of the FSR photon associated to the muon"),                 
+        phi_FSR = Var("userFloat('phiFSR')",float,doc="phi of the FSR photon associated to the muon"),                 
         pfRelIso03_chg = Var("pfIsolationR03().sumChargedHadronPt/pt",float,doc="PF relative isolation dR=0.3, charged component"),
         pfRelIso03_all = Var("(pfIsolationR03().sumChargedHadronPt + max(pfIsolationR03().sumNeutralHadronEt + pfIsolationR03().sumPhotonEt - pfIsolationR03().sumPUPt/2,0.0))/pt",float,doc="PF relative isolation dR=0.3, total (deltaBeta corrections)"),
         pfRelIso04_all = Var("(pfIsolationR04().sumChargedHadronPt + max(pfIsolationR04().sumNeutralHadronEt + pfIsolationR04().sumPhotonEt - pfIsolationR04().sumPUPt/2,0.0))/pt",float,doc="PF relative isolation dR=0.4, total (deltaBeta corrections)"),
@@ -173,7 +187,7 @@ muonMCTable = cms.EDProducer("CandMCMatchTableProducer",
     docString = cms.string("MC matching to status==1 muons"),
 )
 
-muonSequence = cms.Sequence(isoForMu + ptRatioRelForMu + slimmedMuonsWithUserData + finalMuons + finalLooseMuons)
+muonSequence = cms.Sequence(isoForMu + FSRforMu + ptRatioRelForMu + slimmedMuonsWithUserData + finalMuons + finalLooseMuons)
 muonMC = cms.Sequence(muonsMCMatchForTable + muonMCTable)
 muonTables = cms.Sequence(muonMVATTH + muonMVALowPt + muonTable)
 
