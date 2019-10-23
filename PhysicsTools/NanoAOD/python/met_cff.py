@@ -107,8 +107,17 @@ metMCTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
 )
 
 
+metSigTable = cms.EDProducer("METSignificanceInputProducer",
+    srcPFCandidates = cms.InputTag('packedPFCandidates'),
+    srcLeptons      = cms.VInputTag('slimmedElectrons','slimmedMuons','slimmedPhotons'), # photons added here because of good resolution
+    srcPfJets       = cms.InputTag('slimmedJets'),#instead of slimmed
+    METSigParams    = cms.VPSet(
+        cms.PSet( name = cms.string("dRMatch"), dRMatch = cms.double(0.4), jetThreshold = cms.double(15.) ),
+        ),
+)
 
-metTables = cms.Sequence( metTable + rawMetTable + caloMetTable + puppiMetTable + tkMetTable + chsMetTable)
+
+metTables = cms.Sequence( metTable + rawMetTable + caloMetTable + puppiMetTable + tkMetTable + chsMetTable + metSigTable )
 _withFixEE2017_sequence = cms.Sequence(metTables.copy() + metFixEE2017Table)
 for modifier in run2_nanoAOD_94XMiniAODv1, run2_nanoAOD_94XMiniAODv2:
     modifier.toReplaceWith(metTables,_withFixEE2017_sequence) # only in old miniAOD, the new ones will come from the UL rereco
