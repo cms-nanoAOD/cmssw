@@ -869,8 +869,8 @@ public:
     std::vector<ScaleVarWeight> scaleVariationIDs;
     std::vector<PDFSetWeights>  pdfSetWeightIDs;
     
-    std::regex scalew("LHE,\\s+id\\s+=\\s+(\\d+),\\s+group\\s+=\\s+(.+)\\,\\s+mur=(\\S+)\\smuf=(\\S+)");
-    std::regex pdfw("LHE,\\s+id\\s+=\\s+(\\d+),\\s+group\\s+=\\s+(\\w+\\b),\\s+Member\\s+(\\d+)\\s+of\\ssets\\s+(\\w+\\b)");
+    std::regex scalew("LHE,\\s+id\\s+=\\s+(\\d+),\\s+(.+)\\,\\s+mur=(\\S+)\\smuf=(\\S+)");
+    std::regex pdfw("LHE,\\s+id\\s+=\\s+(\\d+),\\s+(.+),\\s+Member\\s+(\\d+)\\s+of\\ssets\\s+(\\w+\\b)");
     std::smatch groups;
     auto weightNames = genLumiInfoHead->weightNames();
     std::unordered_map<std::string,uint32_t> knownPDFSetsFromGenInfo_;
@@ -880,18 +880,20 @@ public:
 	auto group = groups.str(2);
 	auto mur = groups.str(3);
 	auto muf = groups.str(4);
-	if (group=="Central scale variation") scaleVariationIDs.emplace_back(groups.str(1), groups.str(2), groups.str(3), groups.str(4));
+	if (group.find("Central scale variation")!= std::string::npos) scaleVariationIDs.emplace_back(groups.str(1), groups.str(2), groups.str(3), groups.str(4));
       }
       else if (std::regex_search(line,groups,pdfw)) { // PDF variation
 	auto id = groups.str(1);
 	auto group = groups.str(2);
 	auto memberid = groups.str(3);
 	auto pdfset = groups.str(4);
-	if (knownPDFSetsFromGenInfo_.find(pdfset)==knownPDFSetsFromGenInfo_.end()) {
-	  knownPDFSetsFromGenInfo_[pdfset] = std::atoi(id.c_str());
-	  pdfSetWeightIDs.emplace_back(id,std::atoi(id.c_str()));
+	if (group.find(pdfset)!= std::string::npos) {
+	  if (knownPDFSetsFromGenInfo_.find(pdfset)==knownPDFSetsFromGenInfo_.end()) {
+	    knownPDFSetsFromGenInfo_[pdfset] = std::atoi(id.c_str());
+	    pdfSetWeightIDs.emplace_back(id,std::atoi(id.c_str()));
+	  }
+	  else pdfSetWeightIDs.back().add(id,std::atoi(id.c_str()));
 	}
-	else pdfSetWeightIDs.back().add(id,std::atoi(id.c_str()));
       }
     }
     
