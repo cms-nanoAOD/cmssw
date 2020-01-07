@@ -55,6 +55,9 @@ public:
   /// constructor
   PFAlgo(double nSigmaECAL,
          double nSigmaHCAL,
+         double nSigmaHFEM,
+         double nSigmaHFHAD,
+         std::vector<double> resolHF_square,
          PFEnergyCalibration& calibration,
          PFEnergyCalibrationHF& thepfEnergyCalibrationHF,
          const edm::ParameterSet& pset);
@@ -84,13 +87,7 @@ public:
                             const edm::ValueMap<reco::GsfElectronRef>& valueMapGedElectrons,
                             const edm::ValueMap<reco::PhotonRef>& valueMapGedPhotons);
 
-  void setPostHFCleaningParameters(bool postHFCleaning,
-                                   double minHFCleaningPt,
-                                   double minSignificance,
-                                   double maxSignificance,
-                                   double minSignificanceReduction,
-                                   double maxDeltaPhiPt,
-                                   double minDeltaMet);
+  void setPostHFCleaningParameters(bool postHFCleaning, const edm::ParameterSet& pfHFCleaningParams);
 
   void setDisplacedVerticesParameters(bool rejectTracks_Bad,
                                       bool rejectTracks_Step45,
@@ -159,10 +156,12 @@ private:
                          reco::TrackRef& trackRef);
 
   //Looks for a HF-associated element in the block and produces a PFCandidate from it with HF_EM and/or HF_HAD calibrations
-  void createCandidateHF(const reco::PFBlock& block,
-                         const reco::PFBlockRef& blockref,
-                         const edm::OwnVector<reco::PFBlockElement>& elements,
-                         ElementIndices& inds);
+  void createCandidatesHF(const reco::PFBlock& block,
+                          reco::PFBlock::LinkData& linkData,
+                          const edm::OwnVector<reco::PFBlockElement>& elements,
+                          std::vector<bool>& active,
+                          const reco::PFBlockRef& blockref,
+                          ElementIndices& inds);
 
   void createCandidatesHCAL(const reco::PFBlock& block,
                             reco::PFBlock::LinkData& linkData,
@@ -219,6 +218,11 @@ private:
 
   double nSigmaHCAL(double clusterEnergy, double clusterEta) const;
 
+  double hfEnergyResolution(double clusterEnergy) const;
+
+  double nSigmaHFEM(double clusterEnergy) const;
+  double nSigmaHFHAD(double clusterEnergy) const;
+
   std::unique_ptr<reco::PFCandidateCollection> pfCandidates_;
   // the post-HF-cleaned candidates
   reco::PFCandidateCollection pfCleanedCandidates_;
@@ -242,6 +246,13 @@ private:
 
   /// number of sigma to judge energy excess in HCAL
   const double nSigmaHCAL_;
+
+  /// number of sigma to judge energy excess in HF
+  const double nSigmaHFEM_;
+  const double nSigmaHFHAD_;
+
+  // HF resolution
+  const std::vector<double> resolHF_square_;
 
   PFEnergyCalibration& calibration_;
   PFEnergyCalibrationHF& thepfEnergyCalibrationHF_;
@@ -318,6 +329,11 @@ private:
   bool useVertices_ = false;
 
   edm::Handle<reco::MuonCollection> muonHandle_;
+
+  // Named constants
+  const double nSigmaEConstHCAL = 100.;
+  const double nSigmaEConstHFEM = 100.;
+  const double nSigmaEConstHFHAD = 100.;
 };
 
 #endif
