@@ -230,6 +230,18 @@ jetTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
     )
 )
 
+puppiJetTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
+    src = cms.InputTag("slimmedJetsPuppi"),
+    cut = cms.string(""), #we should not filter on cross linked collections
+    name = cms.string("PuppiJet"),
+    doc  = cms.string("slimmedJetsPuppi, i.e. ak4 Puppi PFJets CHS with JECs applied, after basic selection (" + finalJets.cut.value()+")"),
+    singleton = cms.bool(False), # the number of entries is variable
+    extension = cms.bool(False), # this is the main table for the jets
+    variables = cms.PSet(P4Vars,
+        rawFactor = Var("1.-jecFactor('Uncorrected')",float,doc="1 - Factor to get back to raw pT",precision=-1),
+    )
+)
+
 #jets are not as precise as muons
 jetTable.variables.pt.precision=10
 
@@ -530,8 +542,6 @@ corrT1METJetTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
     )
 )
 
-
-
 ## MC STUFF ######################
 jetMCTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
     src = cms.InputTag("linkedObjects","jets"),
@@ -662,7 +672,7 @@ _jetSequence_2016.insert(_jetSequence_2016.index(tightJetIdAK8), looseJetIdAK8)
 run2_jme_2016.toReplaceWith(jetSequence, _jetSequence_2016)
 
 #after cross linkining
-jetTables = cms.Sequence(bjetMVA+bjetNN+cjetNN+jetTable+fatJetTable+subJetTable+saJetTable+saTable)
+jetTables = cms.Sequence(bjetMVA+bjetNN+cjetNN+jetTable+fatJetTable+subJetTable+saJetTable+saTable+puppiJetTable)
 
 #MC only producers and tables
 jetMC = cms.Sequence(jetMCTable+genJetTable+patJetPartons+genJetFlavourTable+genJetAK8Table+genJetAK8FlavourAssociation+genJetAK8FlavourTable+fatJetMCTable+genSubJetAK8Table+subjetMCTable)

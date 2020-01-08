@@ -19,10 +19,8 @@ metTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
        significance = Var("metSignificance()", float, doc="MET significance",precision=10),
        MetUnclustEnUpDeltaX = Var("shiftedPx('UnclusteredEnUp')-px()", float, doc="Delta (METx_mod-METx) Unclustered Energy Up",precision=10),
        MetUnclustEnUpDeltaY = Var("shiftedPy('UnclusteredEnUp')-py()", float, doc="Delta (METy_mod-METy) Unclustered Energy Up",precision=10),
-
     ),
 )
-
 
 rawMetTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
     src = metTable.src,
@@ -36,7 +34,6 @@ rawMetTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
        sumEt = Var("uncorSumEt", float, doc="scalar sum of Et", precision=10),
     ),
 )
-
 
 caloMetTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
     src = metTable.src,
@@ -59,6 +56,8 @@ puppiMetTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
     extension = cms.bool(False), # this is the main table for the MET
     variables = cms.PSet(PTVars,
        sumEt = Var("sumEt()", float, doc="scalar sum of Et",precision=10),
+       MetUnclustEnUpDeltaX = Var("shiftedPx('UnclusteredEnUp')-px()", float, doc="Delta (METx_mod-METx) Unclustered Energy Up",precision=10),
+       MetUnclustEnUpDeltaY = Var("shiftedPy('UnclusteredEnUp')-py()", float, doc="Delta (METy_mod-METy) Unclustered Energy Up",precision=10),
     ),
 )
 
@@ -106,6 +105,10 @@ metFixEE2017Table.src = cms.InputTag("slimmedMETsFixEE2017")
 metFixEE2017Table.name = cms.string("METFixEE2017")
 metFixEE2017Table.doc = cms.string("Type-1 corrected PF MET, with fixEE2017 definition")
 
+puppiMetFixEE2017Table = puppiMetTable.clone()
+puppiMetFixEE2017Table.src = cms.InputTag("slimmedMETsPuppiFixEE2017")
+puppiMetFixEE2017Table.name = cms.string("PuppiMETFixEE2017")
+puppiMetFixEE2017Table.doc = cms.string("Type-1 corrected PF Puppi MET, with fixEE2017 definition")
 
 metMCTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
     src = metTable.src,
@@ -122,7 +125,7 @@ metMCTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
 
 
 metTables = cms.Sequence( metTable + rawMetTable + caloMetTable + puppiMetTable + rawPuppiMetTable+ tkMetTable + chsMetTable)
-_withFixEE2017_sequence = cms.Sequence(metTables.copy() + metFixEE2017Table)
+_withFixEE2017_sequence = cms.Sequence(metTables.copy() + metFixEE2017Table + puppiMetFixEE2017Table)
 for modifier in run2_nanoAOD_94XMiniAODv1, run2_nanoAOD_94XMiniAODv2:
     modifier.toReplaceWith(metTables,_withFixEE2017_sequence) # only in old miniAOD, the new ones will come from the UL rereco
 metMC = cms.Sequence( metMCTable )
