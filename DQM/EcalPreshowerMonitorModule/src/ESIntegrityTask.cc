@@ -62,31 +62,19 @@ ESIntegrityTask::ESIntegrityTask(const ParameterSet& ps) {
   ievt_ = 0;
 }
 
-void ESIntegrityTask::endRun(const Run& r, const EventSetup& c) {
+void ESIntegrityTask::dqmEndRun(const Run& r, const EventSetup& c) {
   // In case of Lumi based analysis Disable SoftReset from Integrity histogram to get full statistics
-  DQMStore* dqmStore(edm::Service<DQMStore>().operator->());
-
-  if (doLumiAnalysis_) {
-    for (int i = 0; i < 2; ++i) {
-      for (int j = 0; j < 2; ++j) {
-        if (meDIErrors_[i][j]) {
-          dqmStore->disableSoftReset(meDIErrors_[i][j]);
-        }
-      }
-    }
-  }
+  // TODO: no longer possible, clone histo beforehand if full statisticcs at end of run are required.
 }
 
-void ESIntegrityTask::beginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup& c) {
-  DQMStore* dqmStore(edm::Service<DQMStore>().operator->());
-
+void ESIntegrityTask::dqmBeginLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup& c) {
   LogInfo("ESIntegrityTask") << "analyzed " << ievt_ << " events";
   // In case of Lumi based analysis SoftReset the Integrity histogram
   if (doLumiAnalysis_) {
     for (int i = 0; i < 2; ++i) {
       for (int j = 0; j < 2; ++j) {
         if (meDIErrors_[i][j]) {
-          dqmStore->softReset(meDIErrors_[i][j]);
+          meDIErrors_[i][j]->Reset();
         }
       }
     }
@@ -94,7 +82,7 @@ void ESIntegrityTask::beginLuminosityBlock(const edm::LuminosityBlock& lumi, con
   }
 }
 
-void ESIntegrityTask::endLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup& c) {
+void ESIntegrityTask::dqmEndLuminosityBlock(const edm::LuminosityBlock& lumi, const edm::EventSetup& c) {
   if (doLumiAnalysis_)
     calculateDIFraction();
 }

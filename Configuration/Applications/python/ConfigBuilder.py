@@ -92,7 +92,7 @@ defaultOptions.nConcurrentLumis = '1'
 def dumpPython(process,name):
     theObject = getattr(process,name)
     if isinstance(theObject,cms.Path) or isinstance(theObject,cms.EndPath) or isinstance(theObject,cms.Sequence):
-        return "process."+name+" = " + theObject.dumpPython("process")
+        return "process."+name+" = " + theObject.dumpPython()
     elif isinstance(theObject,_Module) or isinstance(theObject,cms.ESProducer):
         return "process."+name+" = " + theObject.dumpPython()+"\n"
     else:
@@ -1110,7 +1110,7 @@ class ConfigBuilder(object):
             self.RECOBEFMIXDefaultCFF = 'FastSimulation.Configuration.Reconstruction_BefMix_cff'
             self.RECOBEFMIXDefaultSeq = 'reconstruction_befmix'
             self.NANODefaultSeq = 'nanoSequenceFS'
-            self.DQMOFFLINEDefaultCFF="FastSimulation.Configuration.DQMOfflineMC_cff"
+            self.DQMOFFLINEDefaultCFF="DQMOffline.Configuration.DQMOfflineFS_cff"
 
         # Mixing
         if self._options.pileup=='default':
@@ -1915,7 +1915,7 @@ class ConfigBuilder(object):
 
 
     def expandMapping(self,seqList,mapping,index=None):
-        maxLevel=20
+        maxLevel=30
         level=0
         while '@' in repr(seqList) and level<maxLevel:
             level+=1
