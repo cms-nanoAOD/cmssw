@@ -15,6 +15,7 @@ from PhysicsTools.NanoAOD.vertices_cff import *
 from PhysicsTools.NanoAOD.met_cff import *
 from PhysicsTools.NanoAOD.triggerObjects_cff import *
 from PhysicsTools.NanoAOD.isotracks_cff import *
+from PhysicsTools.NanoAOD.dimuons_cff import *
 from PhysicsTools.NanoAOD.NanoAODEDMEventContent_cff import *
 
 from Configuration.Eras.Modifier_run2_miniAOD_80XLegacy_cff import run2_miniAOD_80XLegacy
@@ -123,10 +124,10 @@ l1bits=cms.EDProducer("L1TriggerResultsConverter", src=cms.InputTag("gtStage2Dig
 (run2_miniAOD_80XLegacy | run2_nanoAOD_94X2016 | run2_nanoAOD_94XMiniAODv1 | run2_nanoAOD_94XMiniAODv2 | run2_nanoAOD_102Xv1).toModify(l1bits, storeUnprefireableBit=False)
 
 nanoSequenceCommon = cms.Sequence(
-        nanoMetadata + jetSequence + muonSequence + tauSequence + electronSequence+photonSequence+vertexSequence+
+        nanoMetadata + jetSequence + muonSequence + DiMuonVertex + tauSequence + electronSequence+photonSequence+vertexSequence+
         isoTrackSequence + jetLepSequence + # must be after all the leptons 
         linkedObjects  +
-        jetTables + muonTables + tauTables + electronTables + photonTables +  globalTables +vertexTables+ metTables+simpleCleanerTable + isoTrackTables
+        jetTables + muonTables +  DiMuonTable + tauTables + electronTables + photonTables +  globalTables +vertexTables+ metTables+simpleCleanerTable + isoTrackTables
         )
 nanoSequenceOnlyFullSim = cms.Sequence(triggerObjectTables + l1bits)
 

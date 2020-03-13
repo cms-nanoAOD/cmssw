@@ -19,6 +19,8 @@
 <use   name="CondTools/BTau"/>
 <use   name="fastjet"/>
 <use   name="fastjet-contrib"/>
+<use   name="RecoVertex/KalmanVertexFit"/>
+<use   name="MagneticField/Records"/>
 <library   file="*.cc" name="PhysicsToolsNanoAODPlugins">
   <flags   EDM_PLUGIN="1"/>
 </library>
