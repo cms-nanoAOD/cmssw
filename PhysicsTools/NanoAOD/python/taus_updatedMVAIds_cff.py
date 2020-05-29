@@ -648,6 +648,26 @@ _tauIDSourcesWithAntiE = cms.PSet(
 )
 slimmedTausUpdated.tauIDSources=_tauIDSourcesWithAntiE
 
+### anti-e in dead-ECal regions
+from RecoTauTag.RecoTau.PATTauDiscriminationAgainstElectronDeadECAL_cfi import *
+# add to tauID sequence
+_patTauMVAIDsSeqWithAntiEdeadECalSeq = cms.Sequence(
+    patTauMVAIDsSeq.copy() +
+    patTauDiscriminationAgainstElectronDeadECAL
+)
+# add to tauIDSources PSet
+_tauIDSourcesWithAntiEdeadECal = cms.PSet(
+    slimmedTausUpdated.tauIDSources.clone(),
+    againstElectronDeadECAL = cms.InputTag("patTauDiscriminationAgainstElectronDeadECAL")
+)
+# modify actually used sequence and TauIDSources PSet for any new era
+(~eras.run2_miniAOD_80XLegacy & ~eras.run2_nanoAOD_92X & ~eras.run2_nanoAOD_94XMiniAODv1 & \
+ ~eras.run2_nanoAOD_94XMiniAODv2 & ~eras.run2_nanoAOD_94X2016 & ~eras.run2_nanoAOD_102Xv1 \
+).toReplaceWith(patTauMVAIDsSeq, _patTauMVAIDsSeqWithAntiEdeadECalSeq)
+(~eras.run2_miniAOD_80XLegacy & ~eras.run2_nanoAOD_92X & ~eras.run2_nanoAOD_94XMiniAODv1 & \
+ ~eras.run2_nanoAOD_94XMiniAODv2 & ~eras.run2_nanoAOD_94X2016 & ~eras.run2_nanoAOD_102Xv1 \
+).toModify(slimmedTausUpdated,
+           tauIDSources = _tauIDSourcesWithAntiEdeadECal)
 
 
 patTauMVAIDsSeq += slimmedTausUpdated
