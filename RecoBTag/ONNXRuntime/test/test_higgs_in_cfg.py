@@ -1,10 +1,11 @@
+
 import FWCore.ParameterSet.Config as cms
 from PhysicsTools.PatAlgos.tools.helpers import getPatAlgosToolsTask
 
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing('analysis')
 options.inputFiles = '/store/mc/RunIIFall17MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/90000/DCFE3F5F-AE42-E811-B6DB-008CFAF72A64.root'
-options.maxEvents = 1000
+options.maxEvents = 100
 options.parseArguments()
 
 process = cms.Process("PATtest")
@@ -28,7 +29,7 @@ process.maxEvents = cms.untracked.PSet(input=cms.untracked.int32(options.maxEven
 process.load("Configuration.Geometry.GeometryRecoDB_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2017_realistic')
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc')
 process.load("Configuration.StandardSequences.MagneticField_cff")
 
 ## Output Module Configuration (expects a path 'p')
@@ -47,7 +48,7 @@ process.outpath = cms.EndPath(process.out, patAlgosToolsTask)
 
 ## and add them to the event content
 from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
-from RecoBTag.MXNet.pfParticleNet_cff import _pfParticleNetJetTagsAll as pfParticleNetJetTagsAll
+from RecoBTag.ONNXRuntime.pfHiggsInteractionNet_cff import _pfHiggsInteractionNetTagsProbs as pfHiggsInteractionNetTagsProbs
 
 updateJetCollection(
    process,
@@ -56,7 +57,7 @@ updateJetCollection(
    svSource = cms.InputTag('slimmedSecondaryVertices'),
    rParam = 0.8,
    jetCorrections = ('AK8PFPuppi', cms.vstring(['L2Relative', 'L3Absolute']), 'None'),
-   btagDiscriminators = pfParticleNetJetTagsAll
+   btagDiscriminators = pfHiggsInteractionNetTagsProbs
    )
 
 from Configuration.EventContent.EventContent_cff import MINIAODSIMEventContent
@@ -67,4 +68,8 @@ process.out.outputCommands.append('keep *_selectedPatJets*_*_*')
 process.out.outputCommands.append('keep *_selectedUpdatedPatJets*_*_*')
 process.out.outputCommands.append('keep *_updatedPatJets*_*_*')
 
-process.out.fileName = 'test_particle_net_MINIAODSIM.root'
+process.out.fileName = 'test_higgs_in_MINIAODSIM.root'
+
+#                                         ##
+#   process.options.wantSummary = False   ##  (to suppress the long output at the end of the job)
+# process.add_(cms.Service("InitRootHandlers", DebugLevel =cms.untracked.int32(3)))
